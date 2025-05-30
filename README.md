@@ -1,4 +1,6 @@
-gi# Line Following Fire Extinguisher Robot
+# Line Following Fire Extinguisher Robot
+
+![Line Follower Robot](assets/Line%20Follower.PNG)
 
 This project is an Arduino-based robot that follows a black line using 5 digital line sensors and can detect and extinguish fire using a flame sensor and a fan. The robot uses PID control for smooth line following and an L298N motor driver for movement.
 
