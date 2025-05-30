@@ -37,7 +37,7 @@ This project is an Arduino-based robot that follows a black line using 5 digital
 
 ## Getting Started
 1. Wire all sensors, motors, and fan according to the pin configuration above.
-2. Upload the `line_follow.cpp` code to your Arduino board using PlatformIO or Arduino IDE.
+2. Upload the `line_follower.cpp` code to your Arduino board using PlatformIO or Arduino IDE.
 3. Adjust PID constants (`Kp`, `Ki`, `Kd`) and motor speeds as needed for your robot and environment.
 
 ## Tuning Tips
