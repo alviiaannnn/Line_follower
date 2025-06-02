@@ -159,7 +159,20 @@ void loop() {
     leftMotorSpeed = constrain(leftMotorSpeed, 0, 255);
     rightMotorSpeed = constrain(rightMotorSpeed, 0, 255);
 
-    moveForward(leftMotorSpeed, rightMotorSpeed);
+    // Logika belok tajam jika error sangat besar
+    if (error <= -1.5) {
+      turnLeftSharp(turnSpeed);
+      resetPID();
+    } else if (error >= 1.5) {
+      turnRightSharp(turnSpeed);
+      resetPID();
+    } else if (!sLM && !sL && !sC && !sR && !sRM) {
+      // Tidak ada garis terdeteksi, motor berhenti
+      stopMotors();
+      resetPID();
+    } else {
+      moveForward(leftMotorSpeed, rightMotorSpeed);
+    }
   }
   delay(10); // Jeda loop kecil untuk stabilitas
 }
