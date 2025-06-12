@@ -9,15 +9,16 @@
 #define IN3_PIN 4
 #define IN4_PIN 5
 // CLP & Kipas
-#define CLP 12
+#define CLP 6
+#define NEAR 7
 #define FAN_PIN 11
 #define FLAME_SENSOR_PIN 13
 
-int maxSpeed = 200;
-int baseSpeed = 150;
+int maxSpeed = 110;
+int baseSpeed = 60;
 
 // PID variables
-float Kp = 20, Ki = 0, Kd = 8;
+float Kp = 60, Ki = 0, Kd = 5;
 float error = 0, lastError = 0, integral = 0;
 
 // Sensor pin
@@ -27,7 +28,8 @@ int weights[5] = {-2, -1, 0, 1, 2};
 
 void bacaSensor() {
   for (int i = 0; i < 5; i++) {
-    sensorValues[i] = analogRead(sensorPins[i]) > 100 ? 1 : 0;
+    sensorValues[i] = analogRead(sensorPins[i]) > 100 ? 0 : 1;
+    // Sensor bernilai 1 jika mendeteksi garis, 0 jika tidak
   }
 }
 
@@ -48,8 +50,8 @@ void kontrolPID() {
   float output = Kp * error + Ki * integral + Kd * derivative;
   lastError = error;
 
-  int leftSpeed = constrain(baseSpeed - output, 0, maxSpeed);
-  int rightSpeed = constrain(baseSpeed + output, 0, maxSpeed);
+  int leftSpeed = constrain(baseSpeed + output, 0, maxSpeed);
+  int rightSpeed = constrain(baseSpeed - output, 0, maxSpeed);
   motorGerak(leftSpeed, rightSpeed);
 }
 
@@ -66,6 +68,40 @@ void berhenti() {
   digitalWrite(IN3_PIN, LOW); digitalWrite(IN4_PIN, LOW);
 }
 
+void kiriTajam() {
+  analogWrite(ENA_PIN, baseSpeed); analogWrite(ENB_PIN, maxSpeed);
+  digitalWrite(IN3_PIN, HIGH); digitalWrite(IN4_PIN, LOW);
+  digitalWrite(IN1_PIN, LOW); digitalWrite(IN2_PIN, HIGH);
+}
+
+void kananTajam() {
+  analogWrite(ENA_PIN, maxSpeed); analogWrite(ENB_PIN, baseSpeed);
+  digitalWrite(IN3_PIN, LOW); digitalWrite(IN4_PIN, HIGH);
+  digitalWrite(IN1_PIN, HIGH); digitalWrite(IN2_PIN, LOW);
+}
+
+void aksiCLP() {
+  unsigned long start = millis();
+  motorGerak(-baseSpeed, -baseSpeed); // Mundur sebentar
+  delay(1000);
+  while (millis() - start < 10000) { // maksimal 10 detik sampai mendeteksi garis
+    bacaSensor();
+    if (sensorValues[0] || sensorValues[1] || sensorValues[3] || sensorValues[4]) break;
+    motorGerak(-baseSpeed, -baseSpeed);
+    delay(10);
+  }
+  berhenti();
+}
+
+void aksiKipas(bool flameSensor) {
+  if (flameSensor) {
+    digitalWrite(FAN_PIN, HIGH); // Nyalakan kipas
+  } else {
+    digitalWrite(FAN_PIN, LOW); // Matikan kipas
+    return;
+  }
+}
+
 void setup() {
   Serial.begin(9600);
   pinMode(ENA_PIN, OUTPUT); pinMode(IN1_PIN, OUTPUT); pinMode(IN2_PIN, OUTPUT);
@@ -73,24 +109,12 @@ void setup() {
   pinMode(CLP, INPUT_PULLUP);
   pinMode(FAN_PIN, OUTPUT);
   pinMode(FLAME_SENSOR_PIN, INPUT);
-  berhenti();
-}
-
-void aksiCLP() {
-  unsigned long start = millis();
-  motorGerak(-100, -100); // Mundur sebentar
-  delay(1000);
-  while (true) {
-    bacaSensor();
-    if (sensorValues[0] || sensorValues[1] || sensorValues[3] || sensorValues[4]) break;
-    motorGerak(-100, -100);
-    delay(10);
-  }
+  pinMode(NEAR, INPUT);
   berhenti();
 }
 
 void loop() {
-  if (digitalRead(CLP) == LOW) {
+  if (digitalRead(CLP) == HIGH) {
     aksiCLP();
     return;
   }
@@ -99,25 +123,40 @@ void loop() {
 
   // Semua sensor 0 = kemungkinan di api
   if (sensorValues[0] + sensorValues[1] + sensorValues[2] + sensorValues[3] + sensorValues[4] == 0) {
-    berhenti();
-    if (digitalRead(FLAME_SENSOR_PIN) == HIGH) {
-      digitalWrite(FAN_PIN, HIGH);
-    } else {
-      digitalWrite(FAN_PIN, LOW);
-    }
-    delay(1000); // Waktu kipas aktif
-    motorGerak(-100, -100); // Mundur
-    delay(1000);
-    while (true) {
+    unsigned long start = millis();
+    if (millis() - start < 500) { // Tunggu 0.5 detik
       bacaSensor();
-      if (sensorValues[0] || sensorValues[1] || sensorValues[3] || sensorValues[4]) break;
-      motorGerak(-100, -100);
-      delay(10);
+      kontrolPID();
+    } else {
+      berhenti();
+      aksiKipas(FLAME_SENSOR_PIN);
+
+      unsigned long start = millis();
+      while (millis() - start < 10000) { // Tunggu maksimal 10 detik
+        bacaSensor();
+        if (sensorValues[0] || sensorValues[1] || sensorValues[3] || sensorValues[4]) break;
+        motorGerak(-baseSpeed, -baseSpeed);
+      }
+      berhenti();
     }
-    berhenti();
     return;
+  } else if ( sensorValues[0] && sensorValues[1] && sensorValues[2] ) {
+      kananTajam();
+      while (true) {
+        bacaSensor();
+        if (sensorValues[3] || sensorValues[4]) break;
+      } 
+      kontrolPID(); 
+      return;
+  } else if ( sensorValues[4] && sensorValues[3] && sensorValues[2] ) {
+      kiriTajam();
+      while (true) {
+        bacaSensor();
+        if (sensorValues[0] || sensorValues[1]) break;
+      }
+      kontrolPID(); 
+      return;
   }
 
   kontrolPID(); // Jalankan PID jika normal
-  delay(50);
 }
