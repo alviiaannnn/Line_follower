@@ -1,5 +1,7 @@
 # Line Follower & Fire Extinguisher Robot
 
+![line Follower Design](assets/Line Follower.PNG)
+
 Proyek ini adalah kode Arduino untuk robot line follower yang juga dapat mendeteksi dan memadamkan api menggunakan sensor flame dan kipas. Robot menggunakan 5 sensor garis, motor driver dual channel, serta fitur CLP (tombol reset/manual) dan sensor api.
 
 ## Fitur Utama
