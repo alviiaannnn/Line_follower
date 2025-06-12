@@ -1,49 +1,64 @@
-# Line Following Fire Extinguisher Robot
+# Line Follower & Api Extinguisher Robot
 
-![Line Follower Robot](assets/Line%20Follower.PNG)
+Proyek ini adalah kode Arduino untuk robot line follower yang juga dapat mendeteksi dan memadamkan api menggunakan sensor flame dan kipas. Robot menggunakan 5 sensor garis, motor driver dual channel, serta fitur CLP (tombol reset/manual) dan sensor api.
 
-This project is an Arduino-based robot that follows a black line using 5 digital line sensors and can detect and extinguish fire using a flame sensor and a fan. The robot uses PID control for smooth line following and an L298N motor driver for movement.
+## Fitur Utama
 
-## Features
-- **5 Digital Line Sensors**: For accurate line following (leftmost, left, center, right, rightmost)
-- **PID Control**: Adjustable Kp, Ki, Kd for optimal line tracking
-- **Flame Sensor**: Detects fire in front of the robot
-- **Fan/Extinguisher**: Automatically activates when fire is detected
-- **L298N Motor Driver**: Controls two DC motors for movement
+- **Line Follower**: Menggunakan 5 sensor garis analog (A1–A5) dengan algoritma PID untuk mengikuti garis.
+- **Pemadam Api**: Ketika semua sensor garis tidak mendeteksi garis, robot berhenti dan menyalakan kipas jika sensor api aktif.
+- **CLP (Tombol Reset)**: Jika tombol CLP ditekan, robot akan mundur dan mencari garis kembali.
+- **Manuver Tajam**: Robot dapat berbelok tajam ke kiri/kanan jika mendeteksi pola tertentu pada sensor garis.
 
-## Pin Configuration
-| Component         | Arduino Pin |
+## Pinout
+
+| Fungsi            | Pin Arduino |
 |-------------------|-------------|
-| Flame Sensor      | 11          |
-| Fan (Extinguisher)| A0          |
-| Line Sensor LM    | 2           |
-| Line Sensor L     | 3           |
-| Line Sensor C     | 4           |
-| Line Sensor R     | 5           |
-| Line Sensor RM    | 6           |
-| Motor ENA         | 9           |
-| Motor IN1         | 7           |
-| Motor IN2         | 8           |
-| Motor ENB         | 10          |
-| Motor IN3         | 11          |
-| Motor IN4         | 12          |
+| Motor Kiri ENA    | 9           |
+| Motor Kiri IN1    | 2           |
+| Motor Kiri IN2    | 3           |
+| Motor Kanan ENB   | 10          |
+| Motor Kanan IN3   | 4           |
+| Motor Kanan IN4   | 5           |
+| CLP (Tombol)      | 6           |
+| Near (Sensor)     | 7           |
+| Kipas (FAN)       | 11          |
+| Flame Sensor      | 13          |
+| Sensor Garis      | A1–A5       |
 
-> **Note:** Adjust pin numbers in the code if your wiring is different.
+## Cara Kerja
 
-## How It Works
-1. **Line Following**: The robot reads all 5 sensors and calculates the error for PID control. It adjusts the speed of left and right motors to stay on the line.
-2. **Fire Detection**: If the flame sensor detects fire, the robot stops and activates the fan until the fire is gone.
-3. **Resumes Line Following**: After extinguishing, the robot continues following the line.
+1. **Line Following**  
+   Robot membaca 5 sensor garis, menghitung posisi garis, dan mengatur kecepatan motor kiri/kanan menggunakan PID.
 
-## Getting Started
-1. Wire all sensors, motors, and fan according to the pin configuration above.
-2. Upload the `line_follower.cpp` code to your Arduino board using PlatformIO or Arduino IDE.
-3. Adjust PID constants (`Kp`, `Ki`, `Kd`) and motor speeds as needed for your robot and environment.
+2. **Pemadaman Api**  
+   Jika semua sensor garis tidak mendeteksi garis, robot berhenti dan menyalakan kipas jika sensor api aktif.
 
-## Tuning Tips
-- Start with the default PID values and adjust for smoother line following.
-- Make sure all sensors are properly aligned and calibrated.
-- Test the fire detection and fan activation in a safe environment.
+3. **CLP**  
+   Jika tombol CLP ditekan, robot mundur dan mencari garis kembali.
 
-## License
-This project is for educational purposes. Modify and use as needed.
+4. **Manuver Tajam**  
+   Jika pola tertentu terdeteksi pada sensor garis, robot melakukan belokan tajam ke kiri atau kanan.
+
+## Struktur Kode
+
+- `bacaSensor()`: Membaca sensor garis dan mengisi array `sensorValues`.
+- `hitungPosisi()`: Menghitung posisi garis relatif terhadap robot.
+- `kontrolPID()`: Mengatur kecepatan motor berdasarkan hasil PID.
+- `motorGerak()`: Mengatur arah dan kecepatan motor.
+- `berhenti()`, `kiriTajam()`, `kananTajam()`: Fungsi manuver.
+- `aksiCLP()`: Aksi saat tombol CLP ditekan.
+- `aksiKipas()`: Mengontrol kipas berdasarkan sensor api.
+
+## Penggunaan
+
+1. Upload kode ke Arduino.
+2. Hubungkan semua sensor dan aktuator sesuai pinout.
+3. Robot akan otomatis mengikuti garis dan memadamkan api jika terdeteksi.
+
+---
+
+**Catatan:**  
+- Sesuaikan nilai PID (`Kp`, `Ki`, `Kd`) dan threshold sensor sesuai karakteristik robot dan sensor Anda.
+- Pastikan wiring motor dan sensor sudah benar agar arah gerak sesuai.
+
+---
