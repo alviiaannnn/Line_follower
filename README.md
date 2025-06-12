@@ -1,4 +1,6 @@
-# Line Follower & Api Extinguisher Robot
+# Line Follower & Fire Extinguisher Robot
+
+![line Follower Design](assets/Line Follower.PNG)
 
 ![Line Follower Robot](assets/Line%20Follower.PNG)
 
