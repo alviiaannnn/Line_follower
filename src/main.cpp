@@ -133,7 +133,7 @@ void loop() {
     aksiKipas(!NEAR);
 
     unsigned long start2 = millis();
-    while (millis() - start2 < 10000) { // Tunggu maksimal 10 detik
+    while (millis() - start2 < 5000) { // Tunggu maksimal 10 detik
       bacaSensor();
       if (sensorValues[0] || sensorValues[1] || sensorValues[3] || sensorValues[4]) break;
       motorGerak(-baseSpeed, -baseSpeed);
