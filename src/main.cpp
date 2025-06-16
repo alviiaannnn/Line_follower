@@ -10,7 +10,7 @@
 #define IN4_PIN 5
 // CLP & Kipas
 #define CLP 6
-#define NEAR 7
+#define NEAR 7 //LOW ketika mendeteksi api
 #define FAN_PIN 11
 #define FLAME_SENSOR_PIN 13
 
@@ -95,6 +95,7 @@ void aksiCLP() {
 
 void aksiKipas(bool flameSensor) {
   if (flameSensor) {
+    berhenti();
     digitalWrite(FAN_PIN, HIGH); // Nyalakan kipas
   } else {
     digitalWrite(FAN_PIN, LOW); // Matikan kipas
@@ -121,23 +122,21 @@ void loop() {
 
   bacaSensor();
 
-  // Semua sensor 0 = kemungkinan di api
-  if (sensorValues[0] + sensorValues[1] + sensorValues[2] + sensorValues[3] + sensorValues[4] == 0) {
+  if (!sensorValues[0] || !sensorValues[1] || !sensorValues[2] || !sensorValues[3] || !sensorValues[4]) {
     unsigned long start = millis();
-    if (millis() - start < 500) { // Tunggu 0.5 detik
+    while (millis() - start < 500) { // Tunggu 0.5 detik
       bacaSensor();
       kontrolPID();
-    } else {
-      berhenti();
-      aksiKipas(FLAME_SENSOR_PIN);
+    }
+    berhenti();
+    delay(1000); // Tunggu 1 detik sebelum aksi kipas
+    aksiKipas(!NEAR);
 
-      unsigned long start = millis();
-      while (millis() - start < 10000) { // Tunggu maksimal 10 detik
-        bacaSensor();
-        if (sensorValues[0] || sensorValues[1] || sensorValues[3] || sensorValues[4]) break;
-        motorGerak(-baseSpeed, -baseSpeed);
-      }
-      berhenti();
+    unsigned long start2 = millis();
+    while (millis() - start2 < 10000) { // Tunggu maksimal 10 detik
+      bacaSensor();
+      if (sensorValues[0] || sensorValues[1] || sensorValues[3] || sensorValues[4]) break;
+      motorGerak(-baseSpeed, -baseSpeed);
     }
     return;
   } else if ( sensorValues[0] && sensorValues[1] && sensorValues[2] ) {
@@ -157,6 +156,5 @@ void loop() {
       kontrolPID(); 
       return;
   }
-
   kontrolPID(); // Jalankan PID jika normal
 }

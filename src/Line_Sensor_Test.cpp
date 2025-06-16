@@ -2,14 +2,14 @@
 
 void setup() {
     Serial.begin(9600);
-    for (int pin = A1; pin <= A5; pin++) {
+    for (int pin = A0; pin <= A5; pin++) {
         pinMode(pin, INPUT);
     }
 }
 
 void loop() {
     Serial.print("Sensor values: ");
-    for (int pin = A1; pin <= A5; pin++) {
+    for (int pin = A0; pin <= A5; pin++) {
         int value = analogRead(pin);
         Serial.print("A");
         Serial.print(pin - A0);
